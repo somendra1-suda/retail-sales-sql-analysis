@@ -1,0 +1,161 @@
+# Retail Sales Analysis SQL Project
+
+## Project Overview
+
+**Project Title**: Retail Sales Analysis Using SQL  
+**Level**: Beginner to Intermediate  
+**Database**: `retail_sales_db`
+
+This project demonstrates SQL skills and data analysis techniques used to explore, clean, and analyze retail sales data. The project focuses on performing exploratory data analysis (EDA) and solving real-world business problems using SQL queries.
+
+The objective of this project is to strengthen SQL concepts such as aggregations, joins, grouping, filtering, window functions, and business analysis.
+
+---
+
+## Objectives
+
+1. Create and manage a retail sales database.
+2. Perform data cleaning and handle null values.
+3. Conduct exploratory data analysis (EDA).
+4. Solve business problems using SQL queries.
+5. Generate insights related to sales trends and customer behavior.
+
+---
+
+# Database Setup
+
+## Create Database
+
+```sql
+CREATE DATABASE retail_sales_db;
+Create Table
+CREATE TABLE retail_sales (
+    transactions_id INT PRIMARY KEY,
+    sale_date DATE,
+    sale_time TIME,
+    customer_id INT,
+    gender VARCHAR(15),
+    age INT,
+    category VARCHAR(50),
+    quantity INT,
+    price_per_unit FLOAT,
+    cogs FLOAT,
+    total_sale FLOAT
+);
+Data Cleaning
+Check Null Values
+SELECT *
+FROM retail_sales
+WHERE
+    sale_date IS NULL
+    OR sale_time IS NULL
+    OR customer_id IS NULL
+    OR gender IS NULL
+    OR age IS NULL
+    OR category IS NULL
+    OR quantity IS NULL
+    OR price_per_unit IS NULL
+    OR cogs IS NULL;
+Remove Null Values
+DELETE FROM retail_sales
+WHERE
+    sale_date IS NULL
+    OR sale_time IS NULL
+    OR customer_id IS NULL
+    OR gender IS NULL
+    OR age IS NULL
+    OR category IS NULL
+    OR quantity IS NULL
+    OR price_per_unit IS NULL
+    OR cogs IS NULL;
+Exploratory Data Analysis
+Total Records
+SELECT COUNT(*) FROM retail_sales;
+Unique Customers
+SELECT COUNT(DISTINCT customer_id)
+FROM retail_sales;
+Product Categories
+SELECT DISTINCT category
+FROM retail_sales;
+Business Analysis Queries
+1. Sales on Specific Date
+SELECT *
+FROM retail_sales
+WHERE sale_date = '2022-11-05';
+2. Clothing Sales with Quantity Greater Than 4
+SELECT *
+FROM retail_sales
+WHERE category = 'Clothing'
+AND quantity >= 4
+AND EXTRACT(MONTH FROM sale_date) = 11;
+3. Total Sales by Category
+SELECT
+    category,
+    SUM(total_sale) AS net_sale,
+    COUNT(*) AS total_orders
+FROM retail_sales
+GROUP BY category;
+4. Average Age of Beauty Customers
+SELECT
+    ROUND(AVG(age),2) AS avg_age
+FROM retail_sales
+WHERE category = 'Beauty';
+5. Transactions Greater Than 1000
+SELECT *
+FROM retail_sales
+WHERE total_sale > 1000;
+6. Transactions by Gender and Category
+SELECT
+    category,
+    gender,
+    COUNT(*) AS total_transactions
+FROM retail_sales
+GROUP BY category, gender;
+7. Best Selling Month in Each Year
+SELECT
+    year,
+    month,
+    avg_sale
+FROM (
+    SELECT
+        EXTRACT(YEAR FROM sale_date) AS year,
+        EXTRACT(MONTH FROM sale_date) AS month,
+        AVG(total_sale) AS avg_sale,
+        RANK() OVER(
+            PARTITION BY EXTRACT(YEAR FROM sale_date)
+            ORDER BY AVG(total_sale) DESC
+        ) AS ranking
+    FROM retail_sales
+    GROUP BY 1,2
+) AS t1
+WHERE ranking = 1;
+8. Top 5 Customers by Sales
+SELECT
+    customer_id,
+    SUM(total_sale) AS total_sales
+FROM retail_sales
+GROUP BY customer_id
+ORDER BY total_sales DESC
+LIMIT 5;
+9. Unique Customers by Category
+SELECT
+    category,
+    COUNT(DISTINCT customer_id) AS unique_customers
+FROM retail_sales
+GROUP BY category;
+10. Orders by Shift
+WITH hourly_sales AS (
+    SELECT *,
+    CASE
+        WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
+        WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
+        ELSE 'Evening'
+    END AS shift
+    FROM retail_sales
+)
+
+SELECT
+    shift,
+    COUNT(*) AS total_orders
+FROM hourly_sales
+GROUP BY shift;
